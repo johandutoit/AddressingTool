@@ -1,0 +1,538 @@
+﻿<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1">
+    <title>MapAble Mobile</title>
+
+    <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.5.css" />
+    <link rel="stylesheet" href="themes/MapAble.min.css" />
+    <script type="text/javascript" src="jquerymobile/jquery-2.1.3.min.js"></script>
+    <script type="text/javascript" src="jquerymobile/jquery.mobile-1.4.5.min.js"></script>
+    <script type="text/javascript" src="data.js"></script>
+    <script type="text/javascript" src="plupload/js/plupload.full.min.js"></script>
+    <script type="text/javascript" src="plupload/js/jquery.plupload.queue/jquery.plupload.queue.js"></script>
+
+
+    <style>
+        #olmap {
+            padding: 0px;
+        }
+
+        #toolbox {
+            display: none;
+            position: absolute;
+            top: 48px;
+            right: 5px;
+            padding: 0px;
+            z-index: 100;
+        }
+
+        #layerswitcher {
+            margin: 0;
+            padding: 0px;
+            list-style-type: none;
+        }
+
+        #layerSelector {
+            width: 170px;
+            padding: 2px 2px 2px 2px;
+            -moz-box-shadow: 0px 0px 1px gray;
+            -webkit-box-shadow: 0px 0px 1px gray;
+            box-shadow: 0px 0px 1px gray;
+        }
+    </style>
+
+
+
+    <script>
+
+        var global = {};
+        global.points = [];
+        global.initUploader = false;
+
+        function addPoint(lng, lat) {
+            var point = {
+                id: global.points.length + 1,
+                lat: lat,
+                lng: lng
+            }
+            global.points.push(point);
+            return point;
+        }
+
+        function getPoint(id) {
+            for (var i = 0; i < global.points.length; i++) {
+                if (global.points[i].id == id)
+                    return global.points[i];
+            }
+            return null;
+        }
+
+        function loadPoint(id) {
+            var point = getPoint(id);
+            document.getElementById('selDev').checked = point.developed;
+            $('#selDev').trigger('change');
+            document.getElementById('selEnc').checked = point.encrouchments;
+            document.getElementById('selInf').checked = point.informalStructures;
+            $('#stcount').val(point.storeys);
+            $('#stcount').trigger('change');
+            for (var i = 1; i <= 6; i++) {
+                var cl = point.classes[i - 1];
+                $('#s' + i + 'c1').val(cl.c1);
+                $('#s' + i + 'c1').trigger("change");
+                $('#s' + i + 'c2').val(cl.c2),
+                $('#s' + i + 'c2').trigger("change");
+                $('#s' + i + 'c3').val(cl.c3),
+                $('#s' + i + 'c3').trigger("change");
+            }
+        }
+
+        function savePoint() {
+            if (global.pointid == 0)
+                point = addPoint(global.coordLng, global.coordLat);
+            else
+                point = getPoint(global.pointid);
+            point.developed = document.getElementById('selDev').checked;
+            point.encrouchments = document.getElementById('selEnc').checked;
+            point.informalStructures = document.getElementById('selInf').checked;
+            point.storeys = $('#stcount').val();
+            point.classes = [];
+            for (var i = 1; i <= 6; i++) {
+                point.classes.push({
+                    c1: $('#s' + i + 'c1').val(),
+                    c2: $('#s' + i + 'c2').val(),
+                    c3: $('#s' + i + 'c3').val()
+                });
+            }
+            return point;
+        }
+
+
+        function editPoint(id, lng, lat) {
+            global.pointid = id;
+            global.coordLng = lng;
+            global.coordLat = lat;
+            if (id > 0) {
+                loadPoint(id);
+            }
+
+            document.location = 'capture.html';
+            return;
+
+            $('#divCapture').removeClass('hidden');
+            $('#MainView').hide();
+            $('#divCapture').show();
+
+
+            /*
+            $('#popupDialogButton').trigger('click');
+            if (global.initUploader == false) {
+                setTimeout("InitImageUploader();", 200);
+                global.initUploader = true;
+            }
+            */
+
+        }
+
+
+
+        $(document).bind('mobileinit', function () {
+            $.mobile.selectmenu.prototype.options.nativeMenu = false;
+        });
+
+        function clearBaseLayers() {
+            for (var i = 0; i < baseLayers.length; i++)
+                baseLayers[i].setVisible(false);
+        }
+
+        function resizemapdiv() {
+            var wx = $(window).width();
+            var wy = $(window).height();
+            $('#olmap').height(wy - 89);
+            $('#popupDialog').width(wx * 0.8);
+        }
+
+        function showElement(id, show) {
+            if (show)
+                $('#' + id).show();
+            else
+                $('#' + id).hide();
+        }
+
+        $(document).ready(function () {
+
+
+            $('.formbtnSave').click(function () {
+                var point = savePoint();
+                if (global.pointid == 0) {
+                    var mapframe = window.frames['olmap'];
+                    mapframe.addPoint(point.id, point.lng, point.lat);
+                }
+                $('#popupDialog').popup('close');
+            });
+
+
+            $('.formbtnCancel').click(function () {
+                $('#popupDialog').popup('close');
+            });
+
+
+            $('.baseLayerSelect').click(function () {
+                var mapframe = window.frames['olmap'];
+                mapframe.selectBaseLayer(this.id);
+                $('#layerBox').popup('close');
+            });
+
+            $('.layerSelect').click(function () {
+                var mapframe = window.frames['olmap'];
+                mapframe.toggleLayer(this.id);
+                $('#layerBox').popup('close');
+            });
+
+
+            for (var i = 0; i < class1items.length; i++) {
+                var item = class1items[i];
+                $(".selc1").each(function (index) {
+                    $(this).append(new Option(item[1], item[0]));
+                });
+            }
+
+            $(".selc1").change(function () {
+                var id = this.id;
+                if (id == '')
+                    return;
+                var val = $(this).val();
+                var cmb = $('#' + id.substr(0, 2) + 'c2');
+                cmb.empty();
+                for (var i = 0; i < class2items.length; i++) {
+                    var item = class2items[i];
+                    if (item[1] == val)
+                        cmb.append(new Option(item[2], item[0]));
+                }
+                cmb.trigger("change");
+            });
+
+            $(".selc2").change(function () {
+                var id = this.id;
+                if (id == '')
+                    return;
+                var val = $(this).val();
+                var cmb = $('#' + id.substr(0, 2) + 'c3');
+                cmb.empty();
+                for (var i = 0; i < class3items.length; i++) {
+                    var item = class3items[i];
+                    if (item[1] == val)
+                        cmb.append(new Option(item[2], item[0]));
+                }
+                cmb.trigger("change");
+            });
+
+            $(".selc1").each(function (index) {
+                $(this).trigger("change");
+            });
+
+            $('#stcount').change(function () {
+                var val = parseInt($(this).val());
+                showElement('st2', val >= 2);
+                showElement('st3', val >= 3);
+                showElement('st4', val >= 4);
+                showElement('st5', val >= 5);
+                showElement('st6', val >= 6);
+            });
+            $('#stcount').trigger("change");
+
+
+            $('#selDev').change(function () {
+                var val = this.checked;
+                showElement('devdiv', val == true);
+            });
+            $('#selDev').trigger("change");
+        });
+
+        function InitImageUploader() {
+            var uploader = new plupload.Uploader({
+                runtimes: 'gears,html5,flash,silverlight,browserplus',
+                browse_button: 'photoButton',
+                container: 'photoContainer',
+
+                max_file_size: '10mb',
+                url: 'UploadHandler.ashx',
+                max_file_size: '10mb',
+                chunk_size: '1mb',
+                unique_names: false,
+                resize: { width: 635, height: 635, quality: 90 },
+                headers: { "IDofObject1": 'filepath', "IDofObject2": 'obj2' },
+
+                flash_swf_url: '/plupload/js/plupload.flash.swf',
+                silverlight_xap_url: '/plupload/js/plupload.silverlight.xap',
+                filters: [
+                { title: "Image files", extensions: "jpg,gif,png" },
+                { title: "Zip files", extensions: "zip" }
+                ]
+            });
+
+            global.uploader = uploader;
+
+            uploader.bind('Init', function (up, params) {
+
+            });
+
+            $('#uploadfiles').click(function (e) {
+                uploader.start();
+                e.preventDefault();
+            });
+
+            uploader.init();
+
+            var total_upload_files = 0;
+            uploader.bind('FileUploaded', function (up, file, res) {
+                total_upload_files--;
+                if (total_upload_files == 0) {
+                    closeUpload();
+                }
+            });
+            uploader.bind('QueueChanged', function (up, files) {
+                total_upload_files = uploader.files.length;
+                $('#fileImageList').hide();
+                up.start();
+            });
+
+
+            uploader.bind('FilesAdded', function (up, files) {
+                $('#fileUploadList').html('');
+
+                for (var i = 0; i < files.length; i++) {
+                    file = files[i];
+                    $('#fileUploadList').append('<div class="plain_text" id="' + file.id + '">' + file.name + ' (' + plupload.formatSize(file.size) + ') <b></b> </div>');
+                }
+
+                $('#fileUploadList').append('<br /><p align="center" style="padding: 0px"><input type="button" value="Abort Upload" onclick="aboutUpload();" /></p>');
+                $('#fileUploadList').show();
+
+                up.refresh(); // Reposition Flash/Silverlight
+            });
+
+            uploader.bind('UploadProgress', function (up, file) {
+                $('#' + file.id + " b").html(file.percent + "%");
+            });
+
+            uploader.bind('Error', function (up, err) {
+                closeUpload();
+                doError("Failed to upload: " + err.message);
+                up.refresh(); // Reposition Flash/Silverlight
+            });
+
+            uploader.bind('FileUploaded', function (up, file) {
+                $('#' + file.id + " b").html("100%");
+            });
+        }
+
+        function closeUpload() {
+            var uploader = global.uploader;
+            uploader.splice();
+            uploader.refresh();
+            $('#fileUploadList').html('');
+            $('#fileUploadList').hide();
+        }
+
+
+    </script>
+
+</head>
+<body onload="resizemapdiv();" onresize="resizemapdiv();">
+    <!--
+    <div data-role="page" data-theme="a" id="MainView" class="hidden">
+        <div data-role="header" data-position="inline" id="divHeader">
+            <h1>
+                <img src="images/logo.png" height="21" /></h1>
+
+            <a href="#layerBox" id="layerBoxButton" data-rel="popup" data-role="button" data-inline="true" data-icon="bars" data-theme="b" data-transition="pop" class="ui-btn-right">Layers</a>
+            <div data-role="popup" id="layerBox" data-theme="none" style="width: 300px">
+                <div data-role="collapsible-set" data-theme="c" data-content-theme="d">
+                    <div data-role="collapsible" data-collapsed="false" style="background-color: white; padding: 0px">
+                        <h4>Base Layers</h4>
+                        <fieldset data-role="controlgroup">
+
+                            <input type="radio" name="radio-choice" id="MQO_STD" class="baseLayerSelect" checked="checked" />
+                            <label for="MQO_STD">MapQuest Open</label>
+                            <input type="radio" name="radio-choice" id="OSM_STD" class="baseLayerSelect" />
+                            <label for="OSM_STD">OSM - Standard</label>
+                            <input type="radio" name="radio-choice" id="OSM_CYL" class="baseLayerSelect" />
+                            <label for="OSM_CYL">OSM - Cycle Map</label>
+                            <input type="radio" name="radio-choice" id="OSM_TRN" class="baseLayerSelect" />
+                            <label for="OSM_TRN">OSM - Transport</label>
+                        </fieldset>
+                    </div>
+                    <div data-role="collapsible" data-collapsed="true" style="background-color: white; padding: 0px">
+                        <h4>Overlays</h4>
+                        <fieldset data-role="controlgroup">
+                            <input type="checkbox" name="check-choice" id="LAYER_CADASTER" class="layerSelect" checked="checked" />
+                            <label for="LAYER_CADASTER">Tshwane Cadastre</label>
+                            <input type="checkbox" name="check-choice" id="LAYER_WARDS" class="layerSelect" />
+                            <label for="LAYER_WARDS">Wards - 2011</label>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <iframe data-role="content" data-theme="a" id="olmap" name="olmap" src="map.html" style="border: 0px solid red; width: 100%">
+        </iframe>
+
+        <div data-role="footer" data-position="fixed">
+            <h6>Copyright Mapable (Pty) Ltd 2015</h6>
+        </div>
+
+        <a href="#popupDialog" id="popupDialogButton" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b" style="display: none;">Point Information</a>
+        <div data-role="popup" id="popupDialog" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="width: 80%">
+
+        </div>
+
+    </div>
+    -->
+    <div data-role="page" data-theme="a" id="divCapture">
+        <div data-role="header" data-position="inline" id="div3">
+            <h1>
+                <img src="images/logo.png" height="21" />
+            </h1>
+        </div>
+        <div data-role="header" data-theme="a">
+            <h1>Point</h1>
+        </div>
+        <div role="main" class="ui-content">
+            <a id="photoButton" data-role="button" data-icon="camera" data-theme="b" class="">Add Photo</a>
+            <div id="photoContainer" style="background-color: #333333; height: 125px; display: none">
+                <div id="fileUploadList" style="background-color: #333333; height: 115px; overflow-x: hidden; overflow-y: scroll; border: 1px solid black; background-color: white; padding: 4px" class="hidden">
+                </div>
+                <div id="fileImageList" style="background-color: #333333; height: 115px; overflow-x: hidden; overflow-y: scroll; border: 0px solid black; padding: 4px; text-align: center">
+                </div>
+            </div>
+
+
+            <input type="checkbox" name="check-choice" id="selDev" checked="checked" />
+            <label for="selDev">Developed</label>
+
+            <div id="devdiv">
+                <div style="display: none">
+                    <input type="checkbox" name="check-choice" id="selEnc" />
+                    <label for="selEnc">Encrouchments</label>
+                </div>
+
+                <input type="checkbox" name="check-choice" id="selInf" />
+                <label for="selInf">Informal structures</label>
+
+                <label for="name">Number of storeys:</label>
+                <div class="ui-slider">
+                    <input type="number" data-type="range" name="slider" id="slider-0" value="1" min="1" max="6" class="ui-shadow-inset ui-body-inherit ui-corner-all ui-slider-input hidden" >
+                </div>
+
+                <br />
+                <select id="stcount">
+                    <option selected="selected" value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                </select>
+
+
+                <label for="name">Primary class:</label>
+                <select id="s1c1" class="selc1" data-native-menu="false"></select>
+
+                <label for="name">Secondary class:</label>
+                <select id="s1c2" class="selc2" data-native-menu="false"></select>
+
+                <label for="name">Tertiary class:</label>
+                <select id="s1c3" class="selc3" data-native-menu="false"></select>
+
+                <div data-role="collapsible-set" data-content-theme="d" id="st2">
+                    <div data-role="collapsible" id="set1" data-collapsed="false">
+                        <h3>Storey 2</h3>
+                        <p>
+                            <label for="name">Primary class:</label>
+                            <select id="s2c1" class="selc1" data-native-menu="false"></select>
+
+                            <label for="name">Secondary class:</label>
+                            <select id="s2c2" class="selc2" data-native-menu="false"></select>
+
+                            <label for="name">Tertiary class:</label>
+                            <select id="s2c3" class="selc3" data-native-menu="false"></select>
+                        </p>
+                    </div>
+                </div>
+
+                <div data-role="collapsible-set" data-content-theme="d" id="st3">
+                    <div data-role="collapsible" id="Div2" data-collapsed="false">
+                        <h3>Storey 3</h3>
+                        <p>
+                            <label for="name">Primary class:</label>
+                            <select id="s3c1" class="selc1" data-native-menu="false"></select>
+
+                            <label for="name">Secondary class:</label>
+                            <select id="s3c2" class="selc2" data-native-menu="false"></select>
+
+                            <label for="name">Tertiary class:</label>
+                            <select id="s3c3" class="selc3" data-native-menu="false"></select>
+                        </p>
+                    </div>
+                </div>
+
+                <div data-role="collapsible-set" data-content-theme="d" id="st4">
+                    <div data-role="collapsible" id="Div4" data-collapsed="false">
+                        <h3>Storey 4</h3>
+                        <p>
+                            <label for="name">Primary class:</label>
+                            <select id="s4c1" class="selc1" data-native-menu="false"></select>
+
+                            <label for="name">Secondary class:</label>
+                            <select id="s4c2" class="selc2" data-native-menu="false"></select>
+
+                            <label for="name">Tertiary class:</label>
+                            <select id="s4c3" class="selc3" data-native-menu="false"></select>
+                        </p>
+                    </div>
+                </div>
+
+                <div data-role="collapsible-set" data-content-theme="d" id="st5">
+                    <div data-role="collapsible" id="Div6" data-collapsed="false">
+                        <h3>Storey 5</h3>
+                        <p>
+                            <label for="name">Primary class:</label>
+                            <select id="s5c1" class="selc1" data-native-menu="false"></select>
+
+                            <label for="name">Secondary class:</label>
+                            <select id="s5c2" class="selc2" data-native-menu="false"></select>
+
+                            <label for="name">Tertiary class:</label>
+                            <select id="s5c3" class="selc3" data-native-menu="false"></select>
+                        </p>
+                    </div>
+                </div>
+
+                <div data-role="collapsible-set" data-content-theme="d" id="st6">
+                    <div data-role="collapsible" id="Div8" data-collapsed="false">
+                        <h3>Storey 6</h3>
+                        <p>
+                            <label for="name">Primary class:</label>
+                            <select id="s6c1" class="selc1" data-native-menu="false"></select>
+
+                            <label for="name">Secondary class:</label>
+                            <select id="s6c2" class="selc2" data-native-menu="false"></select>
+
+                            <label for="name">Tertiary class:</label>
+                            <select id="s63" class="selc3" data-native-menu="false"></select>
+                        </p>
+                    </div>
+                </div>
+                <a id="A1" data-role="button" data-icon="check" data-theme="c" class="formbtnSave">Save</a>
+                <a id="A2" data-role="button" data-icon="delete" data-theme="c" class="formbtnCancel">Cancel</a>
+
+            </div>
+        </div>
+    </div>
+
+
+
+</body>
+</html>

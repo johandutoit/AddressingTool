@@ -1,0 +1,272 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script type="text/javascript" src="jquerymobile/jquery-2.1.3.min.js"></script>
+
+    <script type="text/javascript" src="jquerymobile/jquery.mobile-1.4.5.min.js"></script>
+
+
+    <link rel="stylesheet" href="jquerymobile/jquery.mobile.structure-1.4.5.min.css" />
+    <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.5.css" />
+    <link rel="stylesheet" href="themes/MapAble.min.css" />
+    <link rel="stylesheet" href="themes/jquery.mobile.icons.min.css" />
+
+
+    <script type="text/javascript" src="data.js"></script>
+
+    <script type="text/javascript">
+
+        function showElement(id, show) {
+            if (show)
+                $('#' + id).show();
+            else
+                $('#' + id).hide();
+        }
+
+        $(document).ready(function () {
+
+            for (var i = 0; i < class1items.length; i++) {
+                var item = class1items[i];
+                $(".selc1").each(function (index) {
+                    $(this).append(new Option(item[1], item[0]));
+                });
+            }
+
+            $(".selc1").change(function () {
+                var id = this.id;
+                if (id == '')
+                    return;
+                var val = $(this).val();
+                var cmb = $('#' + id.substr(0, 2) + 'c2');
+                cmb.empty();
+                for (var i = 0; i < class2items.length; i++) {
+                    var item = class2items[i];
+                    if (item[1] == val)
+                        cmb.append(new Option(item[2], item[0]));
+                }
+                cmb.trigger("change");
+            });
+
+            $(".selc2").change(function () {
+                var id = this.id;
+                if (id == '')
+                    return;
+                var val = $(this).val();
+                var cmb = $('#' + id.substr(0, 2) + 'c3');
+                cmb.empty();
+                for (var i = 0; i < class3items.length; i++) {
+                    var item = class3items[i];
+                    if (item[1] == val)
+                        cmb.append(new Option(item[2], item[0]));
+                }
+                cmb.trigger("change");
+            });
+
+
+            $(".selc1").each(function (index) {
+                $(this).trigger("change");
+            });
+
+
+
+            $('#stcount').change(function () {
+                var val = parseInt($(this).val());
+                showElement('st2', val >= 2);
+                showElement('st3', val >= 3);
+                showElement('st4', val >= 4);
+                showElement('st5', val >= 5);
+                showElement('st6', val >= 6);
+            });
+            $('#stcount').trigger("change");
+
+            
+            $('#seldev').change(function () {
+                var val = parseInt($(this).val());
+                showElement('devdiv', val == 1);
+            });
+            $('#seldev').trigger("change");
+
+
+            
+
+
+        });
+
+    </script>
+
+</head>
+<body>
+    <div class="ui-field-contain">
+        <label for="name">Developed:</label>
+        <select id="seldev">
+            <option selected="selected" value="1">Yes</option>
+            <option value="0">No</option>
+        </select>
+    </div>
+
+    <div id="devdiv">
+
+        <div class="ui-field-contain">
+            <label for="name">Primary class:</label>
+            <select id="s1c1" class="selc1"></select>
+        </div>
+
+        <div class="ui-field-contain">
+            <label for="name">Secondary class:</label>
+            <select id="s1c2" class="selc2"></select>
+        </div>
+
+        <div class="ui-field-contain">
+            <label for="name">Tertiary class:</label>
+            <select id="s1c3" class="selc3"></select>
+        </div>
+
+        <div class="ui-field-contain">
+            <label for="name">Encrouchments:</label>
+            <select id="Select2">
+                <option selected="selected" value="1">Yes</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+
+        <div class="ui-field-contain">
+            <label for="name">Informal Settlements:</label>
+            <select id="Select3">
+                <option selected="selected" value="1">Yes</option>
+                <option value="0">No</option>
+            </select>
+        </div>
+
+        <div class="ui-field-contain">
+            <label for="name">Number of storeys:</label>
+            <select id="stcount">
+                <option selected="selected" value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+        </div>
+
+
+        <div data-role="collapsible-set" data-content-theme="d" id="st2">
+            <div data-role="collapsible" id="set1" data-collapsed="true">
+                <h3>Storey 2</h3>
+                <p>
+                    <div class="ui-field-contain">
+                        <label for="name">Primary class:</label>
+                        <select id="s2c1" class="selc1"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Secondary class:</label>
+                        <select id="s2c2" class="selc2"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Tertiary class:</label>
+                        <select id="s2c3" class="selc3"></select>
+                    </div>
+                </p>
+            </div>
+        </div>
+
+        <div data-role="collapsible-set" data-content-theme="d" id="st3">
+            <div data-role="collapsible" id="Div2" data-collapsed="true">
+                <h3>Storey 3</h3>
+                <p>
+                    <div class="ui-field-contain">
+                        <label for="name">Primary class:</label>
+                        <select id="s3c1" class="selc1"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Secondary class:</label>
+                        <select id="s3c2" class="selc2"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Tertiary class:</label>
+                        <select id="s3c3" class="selc3"></select>
+                    </div>
+                </p>
+            </div>
+        </div>
+
+        <div data-role="collapsible-set" data-content-theme="d" id="st4">
+            <div data-role="collapsible" id="Div4" data-collapsed="true">
+                <h3>Storey 4</h3>
+                <p>
+                    <div class="ui-field-contain">
+                        <label for="name">Primary class:</label>
+                        <select id="s4c1" class="selc1"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Secondary class:</label>
+                        <select id="s4c2" class="selc2"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Tertiary class:</label>
+                        <select id="s4c3" class="selc3"></select>
+                    </div>
+                </p>
+            </div>
+        </div>
+
+        <div data-role="collapsible-set" data-content-theme="d" id="st5">
+            <div data-role="collapsible" id="Div6" data-collapsed="true">
+                <h3>Storey 5</h3>
+                <p>
+                    <div class="ui-field-contain">
+                        <label for="name">Primary class:</label>
+                        <select id="s5c1" class="selc1"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Secondary class:</label>
+                        <select id="s5c2" class="selc2"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Tertiary class:</label>
+                        <select id="s5c3" class="selc3"></select>
+                    </div>
+                </p>
+            </div>
+        </div>
+
+        <div data-role="collapsible-set" data-content-theme="d" id="st6">
+            <div data-role="collapsible" id="Div8" data-collapsed="true">
+                <h3>Storey 6</h3>
+                <p>
+                    <div class="ui-field-contain">
+                        <label for="name">Primary class:</label>
+                        <select id="s6c1" class="selc1"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Secondary class:</label>
+                        <select id="s6c2" class="selc2"></select>
+                    </div>
+
+                    <div class="ui-field-contain">
+                        <label for="name">Tertiary class:</label>
+                        <select id="s63" class="selc3"></select>
+                    </div>
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+    <input type="button" value="Save" />
+    <input type="button" value="Cancel" />
+
+</body>
+</html>

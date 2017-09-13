@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geolocation</title>
+      <script type="text/javascript" src="jquerymobile/jquery-2.1.3.min.js"></script>
+    <link rel="stylesheet" href="openlayers/ol.css?v=2" type="text/css">
+    <script src="openlayers/ol-debug.js?v=2"></script>
+
+    <style>
+
+        html, body, #map {
+            margin: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #gpszoom {
+            position: absolute;
+            text-align: left;
+            left: 8px;
+            bottom: 8px;
+            width: 27px
+        }
+
+    </style>
+
+  </head>
+  <body>
+    <div id="map" class="map"></div>
+    <div id="info" style="display: none;">
+        <label for="track">
+          track position
+          <input id="track" type="checkbox"/>
+        </label>
+        <p>
+          position accuracy : <code id="accuracy"></code>&nbsp;&nbsp;
+          altitude : <code id="altitude"></code>&nbsp;&nbsp;
+          altitude accuracy : <code id="altitudeAccuracy"></code>&nbsp;&nbsp;
+          heading : <code id="heading"></code>&nbsp;&nbsp;
+          speed : <code id="speed"></code>
+        </p>
+    </div>
+    <script type="text/javascript">
+
+        var global = {
+            layerWards: null,
+            layerCadastar: null,
+            gpscoords: null,
+            initualZoom: false
+        };
+
+        var fMapCenterX = 28.1866219978332;
+        var fMapCenterY = -25.7621120856035;
+        var fMapZoomLevel = 18;
+
+        var baseLayers = [];
+
+        baseLayers['MQO_STD'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
+        baseLayers['MQO_HBR'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
+        baseLayers['OSM_STD'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
+        baseLayers['OSM_CYL'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
+        baseLayers['OSM_TRN'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
+
+        var version = 101;
+
+        debugger;
+
+
+        global.layerWards = layer = new ol.layer.Tile({
+            source: new ol.source.TileWMS(({
+                url: "http://maps.mapable.co.za/maptiler/wms.aspx?v=" + version,
+                params: { 'LAYERS': '36748', 'TILED': true, 'ZOOM': 5 }
+            }))
+        });
+        global.layerWards.setVisible(true);
+
+        global.layerCadastar = new ol.layer.Tile({
+            source: new ol.source.TileWMS(({
+                url: "http://maps.mapable.co.za/maptiler/wms.aspx?v=4",
+                params: { 'LAYERS': '36746', 'TILED': true, 'ZOOM': 5 }
+            }))
+        });
+        global.layerCadastar.setVisible(true);
+
+        var coord = [fMapCenterX, fMapCenterY];
+        var position = ol.proj.transform(coord, 'EPSG:4326', 'EPSG:900913');
+
+
+        var view = new ol.View({
+            center: position,
+            zoom: fMapZoomLevel
+        });
+
+        var map = new ol.Map({
+            layers: [  new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) }) ],
+            target: 'map',
+            controls: ol.control.defaults({
+                attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
+                    collapsible: false
+                })
+            }),
+            view: view
+        });
+
+        var geolocation = new ol.Geolocation({
+            projection: view.getProjection()
+        });
+
+        function el(id) {
+            return document.getElementById(id);
+        }
+
+        el('track').addEventListener('change', function () {
+            geolocation.setTracking(this.checked);
+        });
+
+        // update the HTML page when the position changes.
+        geolocation.on('change', function () {
+            el('accuracy').innerText = geolocation.getAccuracy() + ' [m]';
+            el('altitude').innerText = geolocation.getAltitude() + ' [m]';
+            el('altitudeAccuracy').innerText = geolocation.getAltitudeAccuracy() + ' [m]';
+            el('heading').innerText = geolocation.getHeading() + ' [rad]';
+            el('speed').innerText = geolocation.getSpeed() + ' [m/s]';
+        });
+
+        // handle geolocation error.
+        geolocation.on('error', function (error) {
+            var info = document.getElementById('info');
+            info.innerHTML = error.message;
+            info.style.display = '';
+        });
+
+        var accuracyFeature = new ol.Feature();
+        geolocation.on('change:accuracyGeometry', function () {
+            accuracyFeature.setGeometry(geolocation.getAccuracyGeometry());
+        });
+
+        var positionFeature = new ol.Feature();
+        positionFeature.setStyle(new ol.style.Style({
+            image: new ol.style.Circle({
+                radius: 6,
+                fill: new ol.style.Fill({
+                    color: '#3399CC'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#fff',
+                    width: 2
+                })
+            })
+        }));
+
+        geolocation.on('change:position', function () {
+            var coordinates = geolocation.getPosition();
+            positionFeature.setGeometry(coordinates ? new ol.geom.Point(coordinates) : null);
+            if (coordinates != null) {
+                global.gpscoords = coordinates;
+                if (global.initualZoom == false) {
+                    view.setCenter(global.gpscoords);
+                    view.setZoom(18);
+                    global.initualZoom = true;
+                }
+            }
+        });
+
+        new ol.layer.Vector({
+            map: map,
+            source: new ol.source.Vector({
+                features: [accuracyFeature, positionFeature]
+            })
+        });
+
+
+        map.on('singleclick', function (evt) {
+            var position = ol.proj.transform(evt.coordinate, 'EPSG:900913', 'EPSG:4326');
+            var lng = position[0];
+            var lat = position[1];
+            var id = 0;
+            var feature = null; //getFeaturesAtPixel(evt.pixel);
+            if (feature)
+                id = feature.o.id;
+            parent.editPoint(id, lng, lat);
+        });
+
+        map.addLayer(global.layerWards);
+        map.addLayer(global.layerCadastar);
+
+        function toggleLayer(id) {
+            debugger;
+            var layer = null;
+
+            switch (id) {
+                case 'LAYER_WARDS':
+                    layer = global.layerWards;
+                    break;
+                case 'LAYER_CADASTER':
+                    layer = global.layerCadastar;
+                    break;
+            }
+
+            if (layer == null) {
+                alert('Invalid layer id: ' + this.id);
+                return;
+            }
+
+            if (layer.getVisible() == false) {
+                layer.setVisible(true);
+                map.addLayer(layer);
+            }
+            else {
+                layer.setVisible(false);
+                map.removeLayer(layer);
+            }
+        }
+
+
+        // $('#track').trigger('click');
+
+    </script>
+  </body>
+</html>

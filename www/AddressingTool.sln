@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DBF09DAB-F9A5-4C83-AED1-E878D2F0A4E1}"
+	ProjectSection(SolutionItems) = preProject
+		capture.html = capture.html
+		data.js = data.js
+		form.html = form.html
+		index.html = index.html
+		mainview.html = mainview.html
+		map.html = map.html
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "css", "css", "{DA367227-4919-4110-BBE4-83D4036C6DC9}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "js", "js", "{A8908725-6214-4984-AF7C-EBE42DD31D55}"
+EndProject
+Global
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
