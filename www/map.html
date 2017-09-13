@@ -53,17 +53,16 @@
         var fMapCenterY = -25.7621120856035;
         var fMapZoomLevel = 18;
 
+
         var baseLayers = [];
 
-        baseLayers['MQO_STD'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
-        baseLayers['MQO_HBR'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
-        baseLayers['OSM_STD'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
-        baseLayers['OSM_CYL'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
-        baseLayers['OSM_TRN'] = new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) });
+        baseLayers['MQO_STD'] = new ol.layer.Tile({ source: new ol.source.OSM({ 'url': 'http://tile.openstreetmap.org/{z}/{x}/{y}.png' }), visible: true });
+        baseLayers['MQO_HBR'] = new ol.layer.Tile({ source: new ol.source.OSM({ 'url': 'http://tile.openstreetmap.org/{z}/{x}/{y}.png' }), visible: true });
+        baseLayers['OSM_STD'] = new ol.layer.Tile({ source: new ol.source.OSM({ 'url': 'http://tile.openstreetmap.org/{z}/{x}/{y}.png' }), visible: true });
+        baseLayers['OSM_CYL'] = new ol.layer.Tile({ source: new ol.source.OSM({ 'url': 'http://{a-c}.tile.opencyclemap.org/cycle/{z}/{x}/{y}.png' }) });
+        baseLayers['OSM_TRN'] = new ol.layer.Tile({ source: new ol.source.OSM({ 'url': 'http://{a-c}.tile.thunderforest.com/transport/{z}/{x}/{y}.png' }) });
 
         var version = 101;
-
-        debugger;
 
 
         global.layerWards = layer = new ol.layer.Tile({
@@ -92,7 +91,9 @@
         });
 
         var map = new ol.Map({
-            layers: [  new ol.layer.Tile({ source: new ol.source.XYZ({ 'url': 'http://mt{1-3}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}' }) }) ],
+            layers: [
+                new ol.layer.Tile({ source: new ol.source.OSM({ 'url': 'salvokop/{z}/{x}/{y}.png' }), visible: true })
+            ],
             target: 'map',
             controls: ol.control.defaults({
                 attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
