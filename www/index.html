@@ -2,10 +2,9 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1">
-    <title>MapAble Mobile</title>
+    <title>MapAble Survey Tools</title>
 
     <link rel="stylesheet" href="jquerymobile/jquery.mobile-1.4.5.css" />
-    <link rel="stylesheet" href="themes/MapAble.min.css" />
     <script type="text/javascript" src="jquerymobile/jquery-2.1.3.min.js"></script>
     <script type="text/javascript" src="jquerymobile/jquery.mobile-1.4.5.min.js"></script>
     <script type="text/javascript" src="data.js"></script>
@@ -13,7 +12,7 @@
     <script type="text/javascript" src="plupload/js/jquery.plupload.queue/jquery.plupload.queue.js"></script>
 
 
-    <style type="text/css">
+    <style>
         #olmap {
             padding: 0px;
         }
@@ -39,6 +38,15 @@
             -moz-box-shadow: 0px 0px 1px gray;
             -webkit-box-shadow: 0px 0px 1px gray;
             box-shadow: 0px 0px 1px gray;
+        }
+
+        .notVacant {
+        }
+
+        .notSurveyable {
+        }
+
+        .cbStoreyCount {
         }
     </style>
 
@@ -124,6 +132,8 @@
             $('#divCapture').show();
 
 
+
+
             /*
             $('#popupDialogButton').trigger('click');
             if (global.initUploader == false) {
@@ -159,26 +169,50 @@
                 $('#' + id).hide();
         }
 
+        function updateNatFeatures() {
+
+            if ($('#selNatFeat').is(':checked'))
+                $('#tbNatFeature').show();
+            else
+                $('#tbNatFeature').hide();
+        }
+
+        function updateVacant() {
+            if ($('#selVacant').is(':checked'))
+                $('.notVacant').hide();
+            else {
+                $('.notVacant').show();
+                if ($('#selNotSurv').is(':checked'))
+                    $('.notSurveyable').hide();
+                else {
+                    $('.notSurveyable').show();
+                }
+            }
+        }
+
         $(document).ready(function () {
 
-            
+
+            $('#selNatFeat').change(updateNatFeatures);
+            $('#selVacant').change(updateVacant);
+            $('#selNotSurv').change(updateVacant);
+            updateNatFeatures();
+            updateVacant();
+
 
             $('.formbtnSave').click(function () {
-                
-                /*
                 var point = savePoint();
                 if (global.pointid == 0) {
                     var mapframe = window.frames['olmap'];
                     mapframe.addPoint(point.id, point.lng, point.lat);
                 }
-                $('#popupDialog').popup('close');
-                */
-                history.back(1);
+                $('#showMapButton').trigger('click');
             });
 
 
             $('.formbtnCancel').click(function () {
-                history.back(1);
+
+                $('#showMapButton').trigger('click');
             });
 
 
@@ -206,8 +240,9 @@
                 var id = this.id;
                 if (id == '')
                     return;
+                var build = id.substr(0, 3);
                 var val = $(this).val();
-                var cmb = $('#' + id.substr(0, 2) + 'c2');
+                var cmb = $('#' + build + id.substr(3, 2) + 'c2');
                 cmb.empty();
                 for (var i = 0; i < class2items.length; i++) {
                     var item = class2items[i];
@@ -221,8 +256,9 @@
                 var id = this.id;
                 if (id == '')
                     return;
+                var build = id.substr(0, 3);
                 var val = $(this).val();
-                var cmb = $('#' + id.substr(0, 2) + 'c3');
+                var cmb = $('#' + build + id.substr(3, 2) + 'c3');
                 cmb.empty();
                 for (var i = 0; i < class3items.length; i++) {
                     var item = class3items[i];
@@ -236,15 +272,27 @@
                 $(this).trigger("change");
             });
 
-            $('#stcount').change(function () {
+
+            $('.cbStoreyCount').change(function () {
+                var build = this.id.substr(0, 3);
                 var val = parseInt($(this).val());
-                showElement('st2', val >= 2);
-                showElement('st3', val >= 3);
-                showElement('st4', val >= 4);
-                showElement('st5', val >= 5);
-                showElement('st6', val >= 6);
+                showElement(build + 'st2', val >= 2);
+                showElement(build + 'st3', val >= 3);
+                showElement(build + 'st4', val >= 4);
+                showElement(build + 'st5', val >= 5);
+                showElement(build + 'st6', val >= 6);
             });
-            $('#stcount').trigger("change");
+            $('.cbStoreyCount').trigger("change");
+
+
+            $('#stbuildings').change(function () {
+                var val = $('#stbuildings').val();
+                showElement('b2_main', val >= 2);
+                showElement('b3_main', val >= 3);
+                showElement('b4_main', val >= 4);
+                showElement('b5_main', val >= 5);
+            });
+            $('#stbuildings').trigger("change");
 
 
             $('#selDev').change(function () {
@@ -252,17 +300,6 @@
                 showElement('devdiv', val == true);
             });
             $('#selDev').trigger("change");
-
-
-            
-            $('#selTab').change(function () {
-                var tab = $('#selTab').val();
-                $('.tabPage').hide();
-                $('#' + tab).show();
-            });
-
-            $('#selTab').trigger('change');
-
         });
 
         function InitImageUploader() {
@@ -351,6 +388,11 @@
             $('#fileUploadList').hide();
         }
 
+        function doSubmit() {
+            document.location = "main.html";
+            return false;
+        }
+
 
     </script>
 
@@ -359,204 +401,39 @@
 
     <div data-role="page" data-theme="a" id="MainView" class="hidden">
         <div data-role="header" data-position="inline" id="divHeader">
-            <h1>
-                <img src="images/logo.png" height="21" />
-                <a id="showCapButton" href="#divCapture" data-transition="slideUp" class="hidden" style="display:none; visibility:hidden"></a>
-            </h1>
-
-            <a href="#layerBox" id="layerBoxButton" data-rel="popup" data-role="button" data-inline="true" data-icon="bars" data-theme="b" data-transition="pop" class="ui-btn-right">Layers</a>
-            <div data-role="popup" id="layerBox" data-theme="none" style="width: 300px">
-                <div data-role="collapsible-set" data-theme="c" data-content-theme="d">
-                    <div data-role="collapsible" data-collapsed="false" style="background-color: white; padding: 0px">
-                        <h4>Base Layers</h4>
-                        <fieldset data-role="controlgroup">
-
-                            <input type="radio" name="radio-choice" id="MQO_STD" class="baseLayerSelect" checked="checked" />
-                            <label for="MQO_STD">MapQuest Open</label>
-                            <input type="radio" name="radio-choice" id="OSM_STD" class="baseLayerSelect" />
-                            <label for="OSM_STD">OSM - Standard</label>
-                            <input type="radio" name="radio-choice" id="OSM_CYL" class="baseLayerSelect" />
-                            <label for="OSM_CYL">OSM - Cycle Map</label>
-                            <input type="radio" name="radio-choice" id="OSM_TRN" class="baseLayerSelect" />
-                            <label for="OSM_TRN">OSM - Transport</label>
-                        </fieldset>
-                    </div>
-                    <div data-role="collapsible" data-collapsed="true" style="background-color: white; padding: 0px">
-                        <h4>Overlays</h4>
-                        <fieldset data-role="controlgroup">
-                            <input type="checkbox" name="check-choice" id="LAYER_CADASTER" class="layerSelect" checked="checked" />
-                            <label for="LAYER_CADASTER">Tshwane Cadastre</label>
-                            <input type="checkbox" name="check-choice" id="LAYER_WARDS" class="layerSelect" />
-                            <label for="LAYER_WARDS">Wards - 2011</label>
-                        </fieldset>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        <iframe data-role="content" data-theme="a" id="olmap" name="olmap" src="map.html" style="border: 0px solid red; width: 100%">
-        </iframe>
-
-
-        <a href="#popupDialog" id="popupDialogButton" data-rel="popup" data-position-to="window" data-transition="pop" class="ui-btn ui-corner-all ui-shadow ui-btn-inline ui-icon-delete ui-btn-icon-left ui-btn-b" style="display: none;">Point Information</a>
-        <div data-role="popup" id="popupDialog" data-overlay-theme="b" data-theme="b" data-dismissible="false" style="width: 80%">
-
+            <h1>Addressing Tools</h1>
+            <a href="#layerBox" id="helpBoxButton" data-rel="popup" data-role="button" data-inline="true" data-icon="info" data-transition="pop" class="ui-btn-left">Help</a>
         </div>
 
-        <div data-role="footer" data-position="fixed" >
-            <h1>
-                Addressing Tools &copy; 2017
-            </h1>
-        </div>
-
-
-    </div>
-    
-    <div data-role="page" data-theme="a" id="divCapture">
-        <div data-role="header" data-position="inline" id="div3">
-            <h1>
-                Capture Point
-                <a href="#layerBox" id="A6" data-rel="popup" data-role="button" data-inline="true" data-icon="delete" data-theme="b" data-transition="pop" class="formbtnCancel ui-btn-left">Cancel</a>
-                <a href="#layerBox" id="A5" data-rel="popup" data-role="button" data-inline="true" data-icon="check" data-theme="b" data-transition="pop" class="formbtnSave ui-btn-right">Save</a>
-            </h1>
-        </div>
         <div role="main" class="ui-content">
 
-            <select id="selTab">
-                <option value="tabAddressDetail">Addressing details</option>
-                <option value="tabAminDetail">Administrative details</option>
-                <option value="tabAddVis">Addresses visible on structure during the survey</option>
-                <option value="tabInstRef">Institutional references</option>
-                <option value="tabFeatDetail">Feature details</option>
-            </select>
-
-            <br />
-
-            <div id="tabAddressDetail" class="tabPage">
-
-                <label for="recid">First name of occupant:</label>
-                <input type="text" id="Text5" value=""  />
-
-                <label for="refnum">Surname of Occupant:</label>
-                <input type="text" id="Text6" value=""  />
-
-                <label for="coords">Occupant’s ID number:</label>
-                <input type="text" id="Text7" value=""  />
-
-                <label for="recid">Contact detail:</label>
-                <input type="text" id="Text8" value=""  />
-
-                <label for="refnum"> Address assigned:</label>
-                <textarea></textarea>
-
-            </div>
-
-            <div id="tabAminDetail" class="tabPage">
-
-                <label for="recid">Record ID</label>
-                <input type="text" id="recid" value="68" readonly="readonly" />
-
-                <label for="refnum">Reference number:</label>
-                <input type="text" id="refnum" value="79911844_65" readonly="readonly" />
-
-                <label for="coords">Coordinates:</label>
-                <input type="text" id="coords" value="28,1848, -25,7625" readonly="readonly" />
-
-                <label for="recid">Field worker:</label>
-                <input type="text" id="Text1" value="John"  />
-
-                <label for="refnum">Device ID:</label>
-                <input type="text" id="Text2" value="SGS8123" readonly="readonly" />
-
-                <label for="coords">Date of site visit:</label>
-                <input type="text" id="Text3" value="15 September 2017"  />
-
-                <label for="coords">Survey status:</label>
-                <input type="text" id="Text4" value="Completed"  />
-
-                <label for="coords">Comments:</label>
-                <textarea></textarea>
-
-            </div>
-
-            <div id="tabAddVis" class="tabPage">
-
-                <label for="recid">First address:</label>
-                <input type="text" id="Text9" value=""  />
-
-                <label for="refnum"> Institution that issued the 1st address:</label>
-                <input type="text" id="Text10" value=""  />
-
-                <label for="coords">Second address:</label>
-                <input type="text" id="Text11" value=""  />
-
-                <label for="recid">Institution that issued the 2nd address:</label>
-                <input type="text" id="Text12" value=""  />
-
-            </div>
-
-            <div id="tabInstRef" class="tabPage">
-
-                <label for="recid">Province (2016):</label>
-                <input type="text" id="Text13" value="Gauteng"  />
-
-                <label for="refnum">District Municipality Name (code) (2016):</label>
-                <input type="text" id="Text14" value=""  />
-
-                <label for="coords">Municipality Name (code) (2016):</label>
-                <input type="text" id="Text15" value="City of Tshwane (TSH)"  />
-
-                <label for="recid">Ward number (2016):</label>
-                <input type="text" id="Text16" value="60"  />
+            <div class="container">
+                <div>&nbsp;</div>
 
 
-                <label for="recid">Voting district no (2016):</label>
-                <input type="text" id="Text17" value="32951910"  />
+              <form class="form-signin" onsubmit="return doSubmit();">
+                <label for="inputEmail" class="sr-only">Email address</label>
+                <input type="email" id="inputEmail" class="form-control" placeholder="Email address" required autofocus>
 
-                <label for="refnum">EA number (2011):</label>
-                <input type="text" id="Text18" value="79911844"  />
+                <label for="inputPassword" class="sr-only">Password</label>
+                <input type="password" id="inputPassword" class="form-control" placeholder="Password" required>
+                <div class="checkbox">
+                  <label>
+                    <input type="checkbox" value="remember-me"> Remember me
+                  </label>
+                </div>
+                <br />
+                <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+              </form>
 
-                <label for="coords">Small area code (2011):</label>
-                <input type="text" id="Text19" value="7994517"  />
 
-                <label for="recid">Sub Place & code (2011):</label>
-                <input type="text" id="Text20" value="Salvokop (799035131)"  />
-
-                <label for="recid">Main place (code) (2011):</label>
-                <input type="text" id="Text21" value="Pretoria (799035)"  />
-
-            </div>
-
-            <div id="tabFeatDetail" class="tabPage">
-
-                <label for="recid">Feature type:</label>
-                <input type="text" id="Text22" value=""  />
-
-                <label for="refnum">Total dwelling units at the point:</label>
-                <input type="text" id="Text23" value=""  />
-
-                <label for="coords">Feature name (if not dwelling unit):</label>
-                <input type="text" id="Text24" value=""  />
-
-            </div>
-            
-
+            </div> <!-- /container -->
         </div>
 
-
-
-        <div data-role="header" data-position="inline" >
-            <h5>
-                Copyright MapAble - 2017
-            <a href="#layerBox" id="A1" data-rel="popup" data-role="button" data-inline="true" data-icon="delete" data-theme="b" data-transition="pop" class="formbtnCancel ui-btn-left">Cancel</a>
-            <a href="#layerBox" id="A2" data-rel="popup" data-role="button" data-inline="true" data-icon="check" data-theme="b" data-transition="pop" class="formbtnSave ui-btn-right">Save</a>
-            </h5>
+        <div data-role="footer" data-position="fixed">
+            <h1>Copyright 2017</h1>
         </div>
-
-
     </div>
-
-
 
 </body>
 </html>
