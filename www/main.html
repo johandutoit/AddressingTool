@@ -270,6 +270,20 @@
         });
 
         function InitImageUploader() {
+            $('#photoButton').click(function () {
+
+                navigator.camera.getPicture(function (result) {
+                    console.log(result);
+                }, function (error) {
+                    console.log(error);
+                }, {
+                    sourceType: Camera.PictureSourceType.CAMERA
+                });
+
+            });
+
+            return;
+
             debugger;
             var uploader = new plupload.Uploader({
                 runtimes: 'gears,html5,flash,silverlight,browserplus',
